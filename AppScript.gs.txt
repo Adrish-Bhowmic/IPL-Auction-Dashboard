@@ -1,0 +1,93 @@
+function pickRandomUnsoldPlayer() {
+  var  sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("IPL Dataset");
+  var players=sheet.getRange('A2:A70').getValues();
+  var statuses=sheet.getRange('E2:E70').getValues();
+  var unsoldPlayers=[];
+  for(var i=0;i<statuses.length;i++){
+    if(statuses[i][0]=="Unsold"){
+      unsoldPlayers.push(players[i][0]);//Stores players  name
+    }
+  }
+  if(unsoldPlayers.length==0){
+    Logger.log("No Players Left Unsold!");
+    return;
+  }
+  var randomIndex=Math.floor(Math.random()*unsoldPlayers.length);
+  var randomPlayer=unsoldPlayers[randomIndex];
+  sheet.getRange("I5").setValue(randomPlayer);
+}
+function bidOnPlayer(teamNameCell,teamBudgetCell){
+  var sheet=SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var incrementAmount=1000000;
+  var currentPrice=sheet.getRange("D29").getValue();
+  if(currentPrice==0){
+    currentPrice=sheet.getRange("C28").getValue();
+  }
+  var teamName=sheet.getRange(teamNameCell).getValue();
+  var teamBudget=sheet.getRange(teamBudgetCell).getValue();
+  if(teamBudget<currentPrice+incrementAmount){
+    SpreadsheetApp.getActiveSpreadsheet().toast(teamName+" does not have enough budget.");
+    return;
+  }
+  sheet.getRange("D29").setValue(currentPrice+incrementAmount);
+  sheet.getRange("D30").setValue(teamName);
+}
+function bidTeamA(){
+  teamNameCell="B4:D4"
+  teamBudgetCell="C5:D5"
+  bidOnPlayer(teamNameCell,teamBudgetCell);
+}
+function bidTeamB(){
+  teamNameCell="F4:H4"
+  teamBudgetCell="G5:H5"
+  bidOnPlayer(teamNameCell,teamBudgetCell);
+}
+function bidTeamC(){
+  teamNameCell="J4:L4"
+  teamBudgetCell="K5:L5"
+  bidOnPlayer(teamNameCell,teamBudgetCell);
+}
+function markPlayerAsSold(){
+  var sheet=SpreadsheetApp.getActiveSpreadsheet();
+  var auctionSheet=sheet.getSheetByName("Auction");
+  var playerSheet=sheet.getSheetByName("IPL Dataset");
+  var playerName=auctionSheet.getRange("D27").getValue();//player in focus
+  var soldTo=auctionSheet.getRange("D30").getValue();//Team that Won
+  var soldPrice=auctionSheet.getRange("D29").getValue();//Final Price
+  auctionSheet.getRange("L29").setValue(playerName);
+  auctionSheet.getRange("L30").setValue(soldTo);
+  auctionSheet.getRange("L31").setValue(soldPrice);
+
+  auctionSheet.getRange("D29:D30").clearContent();
+  var data=playerSheet.getRange("A2:A70").getValues();
+  for(var i=0;i<data.length;i++){
+    if(data[i][0]==playerName){
+      playerSheet.getRange(i+2,5).setValue("Sold");
+      playerSheet.getRange(i+2,6).setValue(soldTo);
+      playerSheet.getRange(i+2,5).setValue(soldPrice);
+      break;
+    }
+  }
+  var entryColumn=1;
+  if(soldTo=='MUMBAI'){
+    entryColumn=6;
+  }
+  if(soldTo=='CHENNAI'){
+    entryColumn=2;
+  }
+  else if(soldTo=='BANGALORE'){
+    entryColumn=10;
+  }
+  var insertRow =8;
+  var values=auctionSheet.getRange(insertRow,entryColumn,30).getValues();
+  //Loop through Values
+  for(var i=0;i<values.length;i++){
+    if(values[i][0]==0 ||values[i][0]==null){
+      insertRow=i+7;
+      break;
+    }
+  }
+  //InsertData
+  auctionSheet.getRange(insertRow,entryColumn,1,2).setValues([[playerName,soldPrice]]);
+  pickRandomUnsoldPlayer();
+}
