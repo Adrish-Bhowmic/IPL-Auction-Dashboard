@@ -68,26 +68,23 @@ function markPlayerAsSold(){
       break;
     }
   }
-  var entryColumn=1;
+  var entryColumn=2;
   if(soldTo=='MUMBAI'){
     entryColumn=6;
-  }
-  if(soldTo=='CHENNAI'){
-    entryColumn=2;
   }
   else if(soldTo=='BANGALORE'){
     entryColumn=10;
   }
-  var insertRow =8;
+  var insertRow =6;
   var values=auctionSheet.getRange(insertRow,entryColumn,30).getValues();
+
   //Loop through Values
-  for(var i=0;i<values.length;i++){
+  for(var i=1;i<values.length;i++){
     if(values[i][0]==0 ||values[i][0]==null){
-      insertRow=i+7;
+      insertRow=i+6;
+      auctionSheet.getRange(insertRow,entryColumn,1,2).setValues([[playerName,soldPrice]]);//InsertData
+      pickRandomUnsoldPlayer(); 
       break;
     }
   }
-  //InsertData
-  auctionSheet.getRange(insertRow,entryColumn,1,2).setValues([[playerName,soldPrice]]);
-  pickRandomUnsoldPlayer();
 }
